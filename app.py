@@ -14,7 +14,9 @@ import matplotlib.pyplot as plt
 import shap
 
 st.set_page_config(page_title="IFC Credit Scoring", layout="wide")
-st.title("Key South Lab - Team Epsilon - IFC Credit Scoring Dashboard_version_alfa (Nombre d’itérations réduit pour tests rapides sur Streamlit)")
+st.title("Key South Lab - Team Εpsilon - IFC Credit Scoring Dashboard (version α, nombre d’itérations réduit de 90 % pour des tests rapides sur Streamlit)")
+
+st.markdown("**Mohamed Falilou Fall**")
 
 # ================================
 # 1️ Upload du dataset
@@ -56,14 +58,14 @@ if uploaded_file:
     st.header("3. Modélisation")
 
     models = {
-        "RandomForest": RandomForestRegressor(n_estimators=100, random_state=42),
-        "ExtraTrees": ExtraTreesRegressor(n_estimators=100, random_state=42),
-        "HistGB": HistGradientBoostingRegressor(max_iter=100, random_state=42),
-        "XGBoost": xgb.XGBRegressor(n_estimators=100, random_state=42),
-        "LightGBM": lgb.LGBMRegressor(n_estimators=100, random_state=42),
-        "CatBoost": CatBoostRegressor(iterations=100, verbose=0, random_state=42),
-        "MLP": MLPRegressor(hidden_layer_sizes=(128,64), max_iter=200, random_state=42),
-        "FT-Transformer (proxy)": MLPRegressor(hidden_layer_sizes=(256,128,64), max_iter=200)
+        "RandomForest": RandomForestRegressor(n_estimators=50, random_state=42),
+        "ExtraTrees": ExtraTreesRegressor(n_estimators=50, random_state=42),
+        "HistGB": HistGradientBoostingRegressor(max_iter=50, random_state=42),
+        "XGBoost": xgb.XGBRegressor(n_estimators=50, random_state=42),
+        "LightGBM": lgb.LGBMRegressor(n_estimators=50, random_state=42),
+        "CatBoost": CatBoostRegressor(iterations=50, verbose=0, random_state=42),
+        "MLP": MLPRegressor(hidden_layer_sizes=(128,64), max_iter=100, random_state=42),
+        "FT-Transformer (proxy)": MLPRegressor(hidden_layer_sizes=(256,128,64), max_iter=100)
     }
 
     # ================================
