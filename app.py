@@ -1,26 +1,23 @@
-# streamlit_app_ifc_final_optimized.py
+# streamlit_app_ifc_final_high_perf.py
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, HistGradientBoostingRegressor
 import xgboost as xgb
 import lightgbm as lgb
 from catboost import CatBoostRegressor
 from sklearn.neural_network import MLPRegressor
 import matplotlib.pyplot as plt
 import shap
-import warnings
-
-warnings.filterwarnings("ignore")
 
 st.set_page_config(page_title="IFC Credit Scoring", layout="wide")
-st.title("Key South Lab - Team Epsilon - IFC Credit Scoring Dashboard (Optimized)")
+st.title("Key South Lab - Team Epsilon - IFC Credit Scoring Dashboard_version_alfa")
 
 # ================================
-# 1️ Dataset
+# 1️ Upload du dataset
 # ================================
 st.header("1. Dataset")
 uploaded_file = st.file_uploader("Charger le dataset CSV", type="csv")
@@ -57,44 +54,33 @@ if uploaded_file:
     # 3️ Modélisation
     # ================================
     st.header("3. Modélisation")
+
     models = {
-        "RandomForest": RandomForestRegressor(n_estimators=100, random_state=42),
-        "XGBoost": xgb.XGBRegressor(n_estimators=100, random_state=42),
-        "LightGBM": lgb.LGBMRegressor(n_estimators=100, random_state=42),
-        "CatBoost": CatBoostRegressor(iterations=100, verbose=0, random_state=42),
-        "MLP": MLPRegressor(hidden_layer_sizes=(64,32), max_iter=200, random_state=42)
+        "RandomForest": RandomForestRegressor(n_estimators=500, random_state=42, n_jobs=-1),
+        "ExtraTrees": ExtraTreesRegressor(n_estimators=500, random_state=42, n_jobs=-1),
+        "HistGB": HistGradientBoostingRegressor(max_iter=500, random_state=42),
+        "XGBoost": xgb.XGBRegressor(n_estimators=500, random_state=42, n_jobs=-1),
+        "LightGBM": lgb.LGBMRegressor(n_estimators=500, random_state=42, n_jobs=-1),
+        "CatBoost": CatBoostRegressor(iterations=500, verbose=0, random_state=42),
+        "MLP": MLPRegressor(hidden_layer_sizes=(256,128,64), max_iter=500, random_state=42),
+        "FT-Transformer (proxy)": MLPRegressor(hidden_layer_sizes=(512,256,128), max_iter=500)
     }
 
-    try:
-        from pytorch_tabnet.tab_model import TabNetRegressor
-        models["TabNet"] = TabNetRegressor(verbose=0)
-    except:
-        st.warning("TabNet non installé")
-
-    try:
-        from tabpfn import TabPFNRegressor
-        models["TabPFN"] = TabPFNRegressor()
-    except:
-        st.warning("TabPFN non installé")
-
     # ================================
-    # 4️ Benchmark des modèles 
+    # 4️ Benchmark des modèles
     # ================================
     st.header("4. Benchmark des modèles")
-    kf = KFold(n_splits=3, shuffle=True, random_state=42)  # 3 splits pour gagner du temps
-
-    # Échantillon pour benchmark
-    sample_size = min(500, len(X_clean))
-    X_sample = X_clean.sample(sample_size, random_state=42)
-    y_sample = y_clean.loc[X_sample.index]
+    kf = KFold(n_splits=3, shuffle=True, random_state=42)
 
     results = {}
     for name, model in models.items():
         st.write(f"🔹 Entraînement du modèle : {name}")
         scores = []
-        for train_idx, val_idx in kf.split(X_sample):
-            X_tr, X_val = X_sample.iloc[train_idx], X_sample.iloc[val_idx]
-            y_tr, y_val = y_sample.iloc[train_idx], y_sample.iloc[val_idx]
+
+        for train_idx, val_idx in kf.split(X_clean):
+            X_tr, X_val = X_clean.iloc[train_idx], X_clean.iloc[val_idx]
+            y_tr, y_val = y_clean.iloc[train_idx], y_clean.iloc[val_idx]
+
             try:
                 model.fit(X_tr, y_tr)
                 preds = model.predict(X_val)
@@ -102,6 +88,7 @@ if uploaded_file:
             except Exception as e:
                 st.warning(f"Erreur avec {name} : {e}")
                 scores.append(np.nan)
+
         results[name] = np.nanmean(scores)
 
     results_df = pd.DataFrame.from_dict(results, orient='index', columns=['MSE']).sort_values(by='MSE')
@@ -140,14 +127,14 @@ if uploaded_file:
     # 7️ Explicabilité SHAP
     # ================================
     st.header("7. Explicabilité SHAP")
+    # Pour accélérer SHAP sur gros dataset, utiliser échantillon
+    sample_X = X_clean.sample(n=min(500, len(X_clean)), random_state=42)
+    explainer = shap.Explainer(best_model, sample_X)
+    shap_values = explainer(sample_X)
 
-    if st.button("Calculer SHAP"):
-        sample_shap = X_clean.sample(n=min(300, len(X_clean)), random_state=42)
-        explainer = shap.Explainer(best_model, sample_shap)
-        shap_values = explainer(sample_shap)
-        fig, ax = plt.subplots(figsize=(10,6))
-        shap.plots.beeswarm(shap_values, show=False)
-        st.pyplot(fig)
+    fig, ax = plt.subplots(figsize=(10,6))
+    shap.plots.beeswarm(shap_values, show=False)
+    st.pyplot(fig)
 
 else:
     st.info("En attente de chargement du dataset pour exécuter le pipeline.")
