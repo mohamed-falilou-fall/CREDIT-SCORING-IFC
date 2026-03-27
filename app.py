@@ -1,4 +1,4 @@
-# streamlit_app_ifc_final_high_perf.py
+# streamlit_app_ifc_final_no_tabnet.py
 
 import streamlit as st
 import pandas as pd
@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import shap
 
 st.set_page_config(page_title="IFC Credit Scoring", layout="wide")
-st.title("Key South Lab - Team Epsilon - IFC Credit Scoring Dashboard_version_alfa")
+st.title("Key South Lab - Team Epsilon - IFC Credit Scoring Dashboard_version_alfa (Nombre d’itérations réduit pour tests rapides sur Streamlit)")
 
 # ================================
 # 1️ Upload du dataset
@@ -56,14 +56,14 @@ if uploaded_file:
     st.header("3. Modélisation")
 
     models = {
-        "RandomForest": RandomForestRegressor(n_estimators=500, random_state=42, n_jobs=-1),
-        "ExtraTrees": ExtraTreesRegressor(n_estimators=500, random_state=42, n_jobs=-1),
-        "HistGB": HistGradientBoostingRegressor(max_iter=500, random_state=42),
-        "XGBoost": xgb.XGBRegressor(n_estimators=500, random_state=42, n_jobs=-1),
-        "LightGBM": lgb.LGBMRegressor(n_estimators=500, random_state=42, n_jobs=-1),
-        "CatBoost": CatBoostRegressor(iterations=500, verbose=0, random_state=42),
-        "MLP": MLPRegressor(hidden_layer_sizes=(256,128,64), max_iter=500, random_state=42),
-        "FT-Transformer (proxy)": MLPRegressor(hidden_layer_sizes=(512,256,128), max_iter=500)
+        "RandomForest": RandomForestRegressor(n_estimators=100, random_state=42),
+        "ExtraTrees": ExtraTreesRegressor(n_estimators=100, random_state=42),
+        "HistGB": HistGradientBoostingRegressor(max_iter=100, random_state=42),
+        "XGBoost": xgb.XGBRegressor(n_estimators=100, random_state=42),
+        "LightGBM": lgb.LGBMRegressor(n_estimators=100, random_state=42),
+        "CatBoost": CatBoostRegressor(iterations=100, verbose=0, random_state=42),
+        "MLP": MLPRegressor(hidden_layer_sizes=(128,64), max_iter=200, random_state=42),
+        "FT-Transformer (proxy)": MLPRegressor(hidden_layer_sizes=(256,128,64), max_iter=200)
     }
 
     # ================================
@@ -127,10 +127,8 @@ if uploaded_file:
     # 7️ Explicabilité SHAP
     # ================================
     st.header("7. Explicabilité SHAP")
-    # Pour accélérer SHAP sur gros dataset, utiliser échantillon
-    sample_X = X_clean.sample(n=min(500, len(X_clean)), random_state=42)
-    explainer = shap.Explainer(best_model, sample_X)
-    shap_values = explainer(sample_X)
+    explainer = shap.Explainer(best_model, X_clean)
+    shap_values = explainer(X_clean)
 
     fig, ax = plt.subplots(figsize=(10,6))
     shap.plots.beeswarm(shap_values, show=False)
