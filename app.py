@@ -14,9 +14,26 @@ import matplotlib.pyplot as plt
 import shap
 
 st.set_page_config(page_title="IFC Credit Scoring", layout="wide")
+
+# Image de fond ajustée (centrée et réduite)
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background: url("https://pbs.twimg.com/profile_images/1722752084070768640/q700RsDG_400x400.jpg");
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("Key South Lab - Team Εpsilon - IFC Credit Scoring Dashboard (version α, nombre d’itérations réduit de 90 % pour des tests rapides sur Streamlit)")
 
-st.markdown("**Mohamed Falilou Fall**")
+st.markdown("**© 2026 Mohamed Falilou Fall**")
 
 # ================================
 # 1️ Upload du dataset
