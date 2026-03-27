@@ -1,4 +1,4 @@
-# streamlit_app_ifc_final_corrected.py
+# streamlit_app_ifc_final_optimized.py
 
 import streamlit as st
 import pandas as pd
@@ -12,13 +12,16 @@ from catboost import CatBoostRegressor
 from sklearn.neural_network import MLPRegressor
 import matplotlib.pyplot as plt
 import shap
+import warnings
+
+warnings.filterwarnings("ignore")
 
 st.set_page_config(page_title="IFC Credit Scoring", layout="wide")
-st.title(" Key South Lab - Team Epsilon - IFC Credit Scoring Dashboard_version_alfa")
+st.title("Key South Lab - Team Epsilon - IFC Credit Scoring Dashboard (Optimized)")
 
-
-# Upload du dataset
-
+# ================================
+# 1️ Dataset
+# ================================
 st.header("1. Dataset")
 uploaded_file = st.file_uploader("Charger le dataset CSV", type="csv")
 
@@ -26,9 +29,9 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("Aperçu du dataset :", df.head())
 
-
-    # Préprocessing
-
+    # ================================
+    # 2️ Préprocessing
+    # ================================
     st.header("2. Préprocessing")
     X = df.drop(columns=["probabilite_defaut"])
     y = df["probabilite_defaut"]
@@ -50,18 +53,16 @@ if uploaded_file:
 
     st.success("Préprocessing terminé.")
 
-
-    # Modélisation
-
+    # ================================
+    # 3️ Modélisation
+    # ================================
     st.header("3. Modélisation")
-
     models = {
-        "RandomForest": RandomForestRegressor(n_estimators=200, random_state=42),
-        "XGBoost": xgb.XGBRegressor(n_estimators=200, random_state=42),
-        "LightGBM": lgb.LGBMRegressor(n_estimators=200, random_state=42),
-        "CatBoost": CatBoostRegressor(iterations=200, verbose=0, random_state=42),
-        "MLP": MLPRegressor(hidden_layer_sizes=(128,64), max_iter=300, random_state=42),
-        "FT-Transformer (proxy)": MLPRegressor(hidden_layer_sizes=(256,128,64), max_iter=300)
+        "RandomForest": RandomForestRegressor(n_estimators=100, random_state=42),
+        "XGBoost": xgb.XGBRegressor(n_estimators=100, random_state=42),
+        "LightGBM": lgb.LGBMRegressor(n_estimators=100, random_state=42),
+        "CatBoost": CatBoostRegressor(iterations=100, verbose=0, random_state=42),
+        "MLP": MLPRegressor(hidden_layer_sizes=(64,32), max_iter=200, random_state=42)
     }
 
     try:
@@ -76,19 +77,24 @@ if uploaded_file:
     except:
         st.warning("TabPFN non installé")
 
-
-    # Benchmark des modèles
-
+    # ================================
+    # 4️ Benchmark des modèles 
+    # ================================
     st.header("4. Benchmark des modèles")
-    kf = KFold(n_splits=5, shuffle=True, random_state=42)
-    results = {}
+    kf = KFold(n_splits=3, shuffle=True, random_state=42)  # 3 splits pour gagner du temps
 
+    # Échantillon pour benchmark
+    sample_size = min(500, len(X_clean))
+    X_sample = X_clean.sample(sample_size, random_state=42)
+    y_sample = y_clean.loc[X_sample.index]
+
+    results = {}
     for name, model in models.items():
         st.write(f"🔹 Entraînement du modèle : {name}")
         scores = []
-        for train_idx, val_idx in kf.split(X_clean):
-            X_tr, X_val = X_clean.iloc[train_idx], X_clean.iloc[val_idx]
-            y_tr, y_val = y_clean.iloc[train_idx], y_clean.iloc[val_idx]
+        for train_idx, val_idx in kf.split(X_sample):
+            X_tr, X_val = X_sample.iloc[train_idx], X_sample.iloc[val_idx]
+            y_tr, y_val = y_sample.iloc[train_idx], y_sample.iloc[val_idx]
             try:
                 model.fit(X_tr, y_tr)
                 preds = model.predict(X_val)
@@ -115,32 +121,33 @@ if uploaded_file:
     ax.set_title("Comparaison des modèles (MSE)")
     st.pyplot(fig)
 
-
-    # Score et décision
-
+    # ================================
+    # 5️ Score et décision
+    # ================================
     st.header("5. Score et décision")
     df["score_ifc"] = df.get("score_ifc", np.random.rand(len(df)))
     df["decision"] = df["score_ifc"].apply(lambda x: "Investir" if x>0 else ("Conditionnel" if x==0 else "Refuser"))
     st.dataframe(df[["score_ifc","decision"]].head())
 
-
-    # Expected Loss
-
+    # ================================
+    # 6️ Expected Loss
+    # ================================
     st.header("6. Expected Loss")
     df["expected_loss"] = df["probabilite_defaut"] * df["perte_en_cas_defaut"] * df["exposition_defaut"]
     st.dataframe(df[["expected_loss"]].head())
 
-
-    # Explicabilité SHAP
-
+    # ================================
+    # 7️ Explicabilité SHAP
+    # ================================
     st.header("7. Explicabilité SHAP")
-    explainer = shap.Explainer(best_model, X_clean)
-    shap_values = explainer(X_clean)
-    
-    # Créer une figure Matplotlib pour le beeswarm
-    fig, ax = plt.subplots(figsize=(10,6))
-    shap.plots.beeswarm(shap_values, show=False)
-    st.pyplot(fig)
+
+    if st.button("Calculer SHAP"):
+        sample_shap = X_clean.sample(n=min(300, len(X_clean)), random_state=42)
+        explainer = shap.Explainer(best_model, sample_shap)
+        shap_values = explainer(sample_shap)
+        fig, ax = plt.subplots(figsize=(10,6))
+        shap.plots.beeswarm(shap_values, show=False)
+        st.pyplot(fig)
 
 else:
     st.info("En attente de chargement du dataset pour exécuter le pipeline.")
