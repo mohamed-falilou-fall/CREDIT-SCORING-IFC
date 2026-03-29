@@ -5,6 +5,7 @@ scikit-learn
 xgboost
 lightgbm
 catboost
-matplotlib
 shap
-openai
+matplotlib
+gpt4all
+tqdm
