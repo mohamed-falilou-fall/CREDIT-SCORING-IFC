@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-financial_agent
+financial_agent.py
 
-Mode test pour simulation sans clé OpenAI.
+Analyse financière du client IFC
+Mode test sans clé OpenAI pour déploiement Streamlit Cloud.
 """
 
 import random
 
 def financial_analysis(expected_loss):
     """
-    Analyse financière du client.
-     Mode test : aucun appel OpenAI.
+    Analyse financière du client IFC.
+     Mode test : aucun appel OpenAI si pas de clé
     """
 
     try:
@@ -51,7 +52,7 @@ def financial_analysis(expected_loss):
         # -------------------------------
         niveau = "Faible" if expected_loss < 10000 else "Modéré" if expected_loss < 50000 else "Élevé"
         soutenabilite = "OK" if expected_loss < 20000 else "Attention" 
-        risque = "" if expected_loss < 10000 else "🟠" if expected_loss < 50000 else "🔴"
+        risque = "" if expected_loss < 10000 else "" if expected_loss < 50000 else "🔴"
 
         return f"""
          MODE TEST (sans OpenAI)
