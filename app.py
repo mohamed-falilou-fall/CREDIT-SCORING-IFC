@@ -63,11 +63,45 @@ if uploaded_file:
     st.dataframe(df.head())
 
     # ================================
+    # FILTRES CLIENT
+    # ================================
+    st.sidebar.header("Filtrage des clients")
+
+    # Pays
+    if "pays" in df.columns:
+        pays_list = ["Tous"] + sorted(df["pays"].dropna().unique().tolist())
+        selected_pays = st.sidebar.selectbox("Choisir un pays", pays_list)
+    else:
+        selected_pays = "Tous"
+
+    # Secteur activité
+    if "secteur_activite" in df.columns:
+        secteur_list = ["Tous"] + sorted(df["secteur_activite"].dropna().unique().tolist())
+        selected_secteur = st.sidebar.selectbox("Secteur d'activité", secteur_list)
+    else:
+        selected_secteur = "Tous"
+
+    # Recherche par ID client
+    id_input = st.sidebar.text_input("Rechercher par ID client")
+
+    # Appliquer les filtres
+    df_filtered = df.copy()
+    if selected_pays != "Tous":
+        df_filtered = df_filtered[df_filtered["pays"] == selected_pays]
+    if selected_secteur != "Tous":
+        df_filtered = df_filtered[df_filtered["secteur_activite"] == selected_secteur]
+    if id_input:
+        df_filtered = df_filtered[df_filtered["id_client"].astype(str) == id_input]
+
+    st.subheader("Données filtrées")
+    st.dataframe(df_filtered)
+
+    # ================================
     # PREPROCESSING
     # ================================
     st.header("2. Préprocessing")
 
-    X, y = preprocess(df)
+    X, y = preprocess(df_filtered)
 
     if X is None or len(X) == 0:
         st.error("Dataset invalide après preprocessing")
@@ -157,13 +191,13 @@ if uploaded_file:
     # ================================
     st.header("5. Expected Loss")
 
-    if all(col in df.columns for col in ["probabilite_defaut", "perte_en_cas_defaut", "exposition_defaut"]):
-        df["expected_loss"] = (
-            df["probabilite_defaut"]
-            * df["perte_en_cas_defaut"]
-            * df["exposition_defaut"]
+    if all(col in df_filtered.columns for col in ["probabilite_defaut", "perte_en_cas_defaut", "exposition_defaut"]):
+        df_filtered["expected_loss"] = (
+            df_filtered["probabilite_defaut"]
+            * df_filtered["perte_en_cas_defaut"]
+            * df_filtered["exposition_defaut"]
         )
-        st.dataframe(df[["expected_loss"]].head())
+        st.dataframe(df_filtered[["expected_loss"]].head())
     else:
         st.warning("Colonnes Expected Loss manquantes.")
 
@@ -174,36 +208,39 @@ if uploaded_file:
 
         st.header("6. Epsilon-Agent AI System")
 
-        index = st.slider("Choisir un client", 0, len(X) - 1)
+        if len(X) > 0:
+            index = st.slider("Choisir un client (index dans le dataset filtré)", 0, len(X) - 1)
 
-        if st.button("Lancer analyse IA"):
+            if st.button("Lancer analyse IA"):
 
-            row_data = X.iloc[index].to_dict()
-            shap_row = shap_values[index].values.tolist() if 'shap_values' in locals() else None
-            expected_loss = df.iloc[index]["expected_loss"] if "expected_loss" in df.columns else 0
+                row_data = X.iloc[index].to_dict()
+                shap_row = shap_values[index].values.tolist() if 'shap_values' in locals() else None
+                expected_loss = df_filtered.iloc[index]["expected_loss"] if "expected_loss" in df_filtered.columns else 0
 
-            with st.spinner("Analyse IA en cours..."):
+                with st.spinner("Analyse IA en cours..."):
 
-                risk = risk_analysis(row_data, shap_row)
-                financial = financial_analysis(expected_loss)
-                strategy = strategy_analysis(row_data)
-                decision = final_decision(risk, financial, strategy)
+                    risk = risk_analysis(row_data, shap_row)
+                    financial = financial_analysis(expected_loss)
+                    strategy = strategy_analysis(row_data)
+                    decision = final_decision(risk, financial, strategy)
 
-            col1, col2 = st.columns(2)
+                col1, col2 = st.columns(2)
 
-            with col1:
-                st.subheader("Risk Agent")
-                st.write(risk)
+                with col1:
+                    st.subheader("Risk Agent")
+                    st.write(risk)
 
-                st.subheader("Financial Agent")
-                st.write(financial)
+                    st.subheader("Financial Agent")
+                    st.write(financial)
 
-            with col2:
-                st.subheader("Strategy Agent")
-                st.write(strategy)
+                with col2:
+                    st.subheader("Strategy Agent")
+                    st.write(strategy)
 
-                st.subheader("Decision Agent")
-                st.success(decision)
+                    st.subheader("Decision Agent")
+                    st.success(decision)
+        else:
+            st.warning("Aucun client disponible pour l'analyse avec ces filtres")
 
     # ================================
     # CHAT AI
