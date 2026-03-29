@@ -1,4 +1,5 @@
-IFC AI Credit Scoring SaaS Platform (Version α)
+```markdown
+# IFC AI Credit Scoring SaaS Platform (Version α)
 
 - Key South Lab – Team Epsilon
 - Auteur : Mohamed Falilou Fall
@@ -6,7 +7,7 @@ IFC AI Credit Scoring SaaS Platform (Version α)
 
 ---
 
-Présentation
+## Présentation
 
 La plateforme IFC AI Credit SaaS permet :
 
@@ -15,14 +16,16 @@ La plateforme IFC AI Credit SaaS permet :
 - L’explicabilité des décisions via SHAP.
 - Une analyse multi-agents IA (« Epsilon-Agent AI System ») pour fournir un scoring, un profil financier, une stratégie et une recommandation finale.
 - Une interface de chat AI pour poser des questions sur les données et les modèles.
+- **Filtrage avancé des clients** : possibilité de sélectionner un pays, un secteur d’activité ou de rechercher un client par son `id_client`.
 
 Cette version α a des itérations réduites pour des tests rapides sur Streamlit.
 
 ---
 
-Structure du projet
+## Structure du projet
 
 ```
+
 ifc_ai_credit_app/
 │
 ├─ app.py
@@ -36,20 +39,20 @@ ifc_ai_credit_app/
 │   └─ chat_agent.py
 ├─ requirements.txt
 └─ README.md
+
 ```
 
 ---
 
-Utilisation pas à pas
+## Utilisation pas à pas
 
-1. Configuration
+### 1. Configuration
 
 - Dans la sidebar, sélectionnez le modèle ML principal :
- Auto (Best), RandomForest, XGBoost, LightGBM, CatBoost
-
+  Auto (Best), RandomForest, XGBoost, LightGBM, CatBoost
 - Activez ou non le système **Multi Epsilon-Agent IA**.
 
-2. Upload du dataset
+### 2. Upload du dataset
 
 - Cliquez sur Charger un fichier CSV.
 - Le dataset doit contenir les colonnes pour la prédiction (utiliser le fichier `dataset_ifc_simulé.csv`) :
@@ -57,72 +60,85 @@ Utilisation pas à pas
   - `probabilite_defaut`, `perte_en_cas_defaut`, `exposition_defaut` (pour Expected Loss)
 - Aperçu des premières lignes s’affichera automatiquement.
 
-3. Préprocessing
+### 3. Filtrage des clients
+
+- Dans la sidebar, vous pouvez maintenant :
+
+  - Sélectionner un **pays** pour filtrer les clients
+  - Sélectionner un **secteur d’activité**
+  - Rechercher un **id_client** spécifique
+
+- Les données affichées et le traitement seront appliqués uniquement sur les clients filtrés.
+
+### 4. Préprocessing
 
 - Les données sont nettoyées et préparées pour la modélisation.
 - Une notification confirme le nombre de lignes et de variables prêtes pour l’entraînement.
 
-4. Modélisation
+### 5. Modélisation
 
 - La plateforme entraîne tous les modèles choisis.
 - Le benchmark MSE s’affiche sous forme de tableau.
 - Le meilleur modèle est automatiquement sélectionné si vous avez choisi Auto (Best).
-- Le modèle final est entraîné sur l’intégralité du dataset.
+- Le modèle final est entraîné sur l’intégralité du dataset filtré.
 
-5. Explicabilité SHAP
+### 6. Explicabilité SHAP
 
 - Les valeurs SHAP sont calculées pour visualiser l’impact de chaque variable sur les prédictions.
 - Un graphique beeswarm est affiché pour interpréter l’importance des features.
 
-6. Expected Loss
+### 7. Expected Loss
 
 - Si les colonnes nécessaires sont présentes, la plateforme calcule la perte attendue pour chaque client :
 
 ```
+
 expected_loss = probabilite_defaut * perte_en_cas_defaut * exposition_defaut
+
 ```
 
 - Les premières valeurs sont affichées.
 
-7. Epsilon-Agent AI System
+### 8. Epsilon-Agent AI System
 
-- Sélectionnez un client via le slider.
-- Cliquez sur Lancer analyse IA :
+- Sélectionnez un client via le **slider** dans le dataset filtré.
+- Cliquez sur **Lancer analyse IA** :
 
-  - Risk Agent : Profil de risque du client
-  - Financial Agent : Analyse financière (Expected Loss)
-  - Strategy Agent : Recommandations stratégiques
-  - Decision Agent : Recommandation finale (Approuvé / Risqué / Refusé)
+  - **Risk Agent** : Profil de risque du client
+  - **Financial Agent** : Analyse financière (Expected Loss)
+  - **Strategy Agent** : Recommandations stratégiques
+  - **Decision Agent** : Recommandation finale (Approuvé / Risqué / Refusé)
 
-8. IFC AI Chat
+### 9. IFC AI Chat
 
 - Posez des questions sur les données ou le modèle dans le champ text_input.
-- L’agent IA fournira des réponses basées sur le dataset et les résultats du benchmark.
+- L’agent IA fournira des réponses basées sur le dataset filtré et les résultats du benchmark.
 
 ---
 
-Fonctionnalités principales
+## Fonctionnalités principales
 
 - Upload CSV et préprocessing automatisé
 - Benchmark multi-modèles (ML classique)
 - Explicabilité SHAP interactive
 - Calcul d’Expected Loss
 - Système multi-agents IA pour scoring et recommandations
+- Filtrage avancé par pays, secteur et id_client
 - Interface chat AI pour analyse et interprétation des données
 
 ---
 
-Agents AI intégrés
+## Agents AI intégrés
 
-1. Risk Agent : analyse le risque client avec fallback automatique.
-2. Financial Agent : calcule l’impact financier via Expected Loss.
-3. Strategy Agent : propose une stratégie pour le client.
-4. Decision Agent : synthétise les résultats et fournit une recommandation finale.
-5. Chat Agent : répond aux questions sur le dataset et les performances des modèles.
+1. **Risk Agent** : analyse le risque client avec fallback automatique.
+2. **Financial Agent** : calcule l’impact financier via Expected Loss.
+3. **Strategy Agent** : propose une stratégie pour le client.
+4. **Decision Agent** : synthétise les résultats et fournit une recommandation finale.
+5. **Chat Agent** : répond aux questions sur le dataset filtré et les performances des modèles.
 
 ---
 
-Support et dépannage
+## Support et dépannage
 
 - Erreur TypeError : assurez-vous que tous les agents acceptent les arguments `row_data` et `shap_row`.
 - Erreur HTTP 404 GPT4All : utilisez un modèle disponible ou laissez le fallback activé.
@@ -130,4 +146,5 @@ Support et dépannage
 
 ---
 
-Note : Cette plateforme est une version α pour tests rapides et démonstrations. Pour un usage en production, augmenter le nombre d’itérations et ajuster les hyperparamètres ML.
+**Note** : Cette plateforme est une version α pour tests rapides et démonstrations. Pour un usage en production, augmenter le nombre d’itérations et ajuster les hyperparamètres ML.
+```
