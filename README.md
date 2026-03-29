@@ -52,7 +52,7 @@ Utilisation pas à pas
 2. Upload du dataset
 
 - Cliquez sur Charger un fichier CSV.
-- Le dataset doit contenir les colonnes pour la prédiction :
+- Le dataset doit contenir les colonnes pour la prédiction (utiliser le fichier `dataset_ifc_simulé.csv`) :
 
   - `probabilite_defaut`, `perte_en_cas_defaut`, `exposition_defaut` (pour Expected Loss)
 - Aperçu des premières lignes s’affichera automatiquement.
