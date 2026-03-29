@@ -1,5 +1,4 @@
-```markdown
- IFC AI Credit Scoring SaaS Platform (Version α)
+IFC AI Credit Scoring SaaS Platform (Version α)
 
 - Key South Lab – Team Epsilon
 - Auteur : Mohamed Falilou Fall
@@ -16,7 +15,7 @@ La plateforme IFC AI Credit SaaS permet :
 - L’explicabilité des décisions via SHAP.
 - Une analyse multi-agents IA (« Epsilon-Agent AI System ») pour fournir un scoring, un profil financier, une stratégie et une recommandation finale.
 - Une interface de chat AI pour poser des questions sur les données et les modèles.
-- **Filtrage avancé des clients** : possibilité de sélectionner un pays, un secteur d’activité ou de rechercher un client par son `id_client`.
+- Filtrage avancé des clients : possibilité de sélectionner un pays, un secteur d’activité ou de rechercher un client par son `id_client`.
 
 Cette version α a des itérations réduites pour des tests rapides sur Streamlit.
 
@@ -24,7 +23,6 @@ Cette version α a des itérations réduites pour des tests rapides sur Streamli
 
 Structure du projet
 
-```
 
 ifc_ai_credit_app/
 │
@@ -40,13 +38,13 @@ ifc_ai_credit_app/
 ├─ requirements.txt
 └─ README.md
 
-```
+
 
 ---
 
 Utilisation pas à pas
 
-### 1. Configuration
+1. Configuration
 
 - Dans la sidebar, sélectionnez le modèle ML principal :
   Auto (Best), RandomForest, XGBoost, LightGBM, CatBoost
@@ -147,4 +145,3 @@ Support et dépannage
 ---
 
 Note : Cette plateforme est une version α pour tests rapides et démonstrations. Pour un usage en production, augmenter le nombre d’itérations et ajuster les hyperparamètres ML.
-```
