@@ -25,18 +25,18 @@ Structure du projet
 
 
 ifc_ai_credit_app/
-│
-├─ app.py
-├─ utils/
-│   └─ preprocessing.py
-├─ agents/
-│   ├─ risk_agent.py
-│   ├─ financial_agent.py
-│   ├─ strategy_agent.py
-│   ├─ decision_agent.py
-│   └─ chat_agent.py
-├─ requirements.txt
-└─ README.md
+
+- app.py
+- utils/
+       - preprocessing.py
+- agents/
+       - risk_agent.py
+       - financial_agent.py
+       -  strategy_agent.py
+       - decision_agent.py
+       - chat_agent.py
+- requirements.txt
+- README.md
 
 
 
