@@ -33,7 +33,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Key South Lab - Team Epsilon - IFC AI Credit Scoring SaaS Platform (version α)")
+st.title("Key South Lab - Team Epsilon - IFC AI Credit Scoring SaaS Platform (version α, nombre d’itérations réduit de 90 % pour des tests rapides sur Streamlit)")
 st.markdown("**Mohamed Falilou Fall - Epsilon-Agent AI System for Credit Decision (IFC-aligned)**")
 
 # ================================
@@ -241,6 +241,17 @@ if uploaded_file:
                     st.success(decision)
         else:
             st.warning("Aucun client disponible pour l'analyse avec ces filtres")
+    from llm.rag_engine import build_vectorstore
+
+# ================================
+# SIDEBAR LLM
+# ================================
+st.sidebar.header("LLM IFC")
+
+if st.sidebar.button("Indexer les rapports IFC (PDF)"):
+    with st.spinner("Indexation en cours..."):
+        build_vectorstore("report/")
+    st.success("Vectorstore IFC prêt")        
 
     # ================================
     # CHAT AI
