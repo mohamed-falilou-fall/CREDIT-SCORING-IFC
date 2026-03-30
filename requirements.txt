@@ -1,11 +1,31 @@
+# ==============================
+# CORE APP
+# ==============================
 streamlit
 pandas
 numpy
+
+# ==============================
+# MACHINE LEARNING
+# ==============================
 scikit-learn
 xgboost
 lightgbm
 catboost
 shap
 matplotlib
-gpt4all
-tqdm
+
+# ==============================
+# LLM / RAG
+# ==============================
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters
+
+faiss-cpu
+sentence-transformers
+transformers
+torch
+
+pypdf
