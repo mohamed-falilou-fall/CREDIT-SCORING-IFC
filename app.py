@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""app - IFC AI Credit Scoring SaaS ()"""
+"""app - IFC AI Credit Scoring SaaS (version α)"""
 
 import streamlit as st
 import pandas as pd
@@ -66,7 +66,6 @@ if uploaded_file:
     # ================================
     st.sidebar.header("3️⃣ Filtrage des clients")
 
-    # Pays / implantation
     if "pays_implantation" in df.columns:
         pays_list = ["Tous"] + sorted(df["pays_implantation"].dropna().unique().tolist())
         selected_pays = st.sidebar.selectbox("Pays d’implantation", pays_list)
@@ -74,7 +73,6 @@ if uploaded_file:
         selected_pays = "Tous"
         st.sidebar.warning("Colonne 'pays_implantation' absente dans le dataset")
 
-    # Secteur activité
     if "secteur_activite" in df.columns:
         secteur_list = ["Tous"] + sorted(df["secteur_activite"].dropna().unique().tolist())
         selected_secteur = st.sidebar.selectbox("Secteur d'activité", secteur_list)
@@ -82,10 +80,8 @@ if uploaded_file:
         selected_secteur = "Tous"
         st.sidebar.warning("Colonne 'secteur_activite' absente dans le dataset")
 
-    # Recherche par ID client
     id_input = st.sidebar.text_input("Rechercher par ID client")
 
-    # Appliquer les filtres
     df_filtered = df.copy()
     if selected_pays != "Tous" and "pays_implantation" in df.columns:
         df_filtered = df_filtered[df_filtered["pays_implantation"] == selected_pays]
@@ -111,13 +107,13 @@ if uploaded_file:
         st.error("Dataset invalide après preprocessing")
         st.stop()
 
-    st.success(f"✅ Dataset prêt : {X.shape[0]} lignes, {X.shape[1]} variables")
+    st.success(f" Dataset prêt : {X.shape[0]} lignes, {X.shape[1]} variables")
 
     # ================================
     # TRAIN STRATEGY AGENT
     # ================================
     train_strategy_model(X)
-    st.write("🔹 Features utilisées :", list(X.columns))
+    st.write(" Features utilisées :", list(X.columns))
 
     # ================================
     # MODELING
@@ -150,17 +146,14 @@ if uploaded_file:
     st.subheader("Benchmark modèles")
     st.dataframe(results_df)
 
-    # ================================
-    # CHOIX MODÈLE
-    # ================================
     best_model_name = results_df.index[0] if model_choice == "Auto (Best)" else model_choice
     best_model = models[best_model_name]
-    st.success(f"✅ Modèle sélectionné : {best_model_name}")
+    st.success(f" Modèle sélectionné : {best_model_name}")
 
     best_model.fit(X, y)
 
     # ================================
-    # SHAP EXPLAINABILITY
+    # SHAP
     # ================================
     st.header("Step 4: Explicabilité SHAP")
     try:
@@ -174,6 +167,107 @@ if uploaded_file:
 
     except Exception as e:
         st.warning(f"SHAP non supporté pour ce modèle : {e}")
+
+    # ================================
+    # STEP 4B: RECOMMANDATIONS
+    # ================================
+    st.header("Step 4b: Diagnostic avancé et recommandations stratégiques")
+
+    if 'shap_values' in locals():
+
+        df_shap = pd.DataFrame(shap_values.values, columns=X.columns)
+        features_analysis = [col for col in X.columns if col != "id_client"][:6]
+
+        df_reco = []
+        df_summary = []
+
+        for i, row in df_shap.iterrows():
+
+            client_id = df_filtered.iloc[i]["id_client"] if "id_client" in df_filtered.columns else i
+            score_actuel = y.iloc[i]
+
+            row_filtered = row[features_analysis]
+            neg_features = row_filtered[row_filtered < 0].sort_values()
+
+            impacts = []
+            score_gain_potentiel = 0
+
+            for feat, val in neg_features.items():
+
+                if feat in df_filtered.columns:
+                    valeur_client = df_filtered.iloc[i][feat]
+                    moyenne = df_filtered[feat].mean()
+                elif feat in X.columns:
+                    valeur_client = X.iloc[i][feat]
+                    moyenne = X[feat].mean()
+                else:
+                    valeur_client = np.nan
+                    moyenne = np.nan
+
+                gain = abs(val)
+                score_gain_potentiel += gain
+
+                impacts.append({
+                    "feature": feat,
+                    "impact": val,
+                    "valeur": valeur_client,
+                    "moyenne": moyenne,
+                    "gain": gain
+                })
+
+            impacts_sorted = sorted(impacts, key=lambda x: x["impact"])
+            top3 = impacts_sorted[:3]
+
+            recommandations_top3 = []
+            for t in top3:
+                if pd.notna(t["valeur"]) and pd.notna(t["moyenne"]):
+                    direction = "augmenter" if t["valeur"] < t["moyenne"] else "optimiser"
+                else:
+                    direction = "améliorer"
+
+                recommandations_top3.append(
+                    f"{t['feature']} ({direction}, impact={round(t['impact'],3)})"
+                )
+
+            score_simule = min(1.0, score_actuel + score_gain_potentiel)
+
+            if score_actuel < 0.4:
+                segment = "High Risk"
+            elif score_actuel < 0.7:
+                segment = "Turnaround"
+            else:
+                segment = "Strong"
+
+            df_summary.append({
+                "id_client": client_id,
+                "score_actuel": round(score_actuel, 4),
+                "score_potentiel": round(score_simule, 4),
+                "gain_potentiel": round(score_gain_potentiel, 4),
+                "segment": segment,
+                "top_3_actions": " | ".join(recommandations_top3) if recommandations_top3 else "RAS"
+            })
+
+            for t in impacts:
+                df_reco.append({
+                    "id_client": client_id,
+                    "feature_critique": t["feature"],
+                    "impact_shap": round(t["impact"], 4),
+                    "valeur_client": t["valeur"],
+                    "benchmark_moyenne": round(t["moyenne"], 4) if pd.notna(t["moyenne"]) else np.nan,
+                    "gain_potentiel": round(t["gain"], 4)
+                })
+
+        df_reco = pd.DataFrame(df_reco)
+        df_summary = pd.DataFrame(df_summary)
+
+        st.subheader("Résumé exécutif par client")
+        st.dataframe(df_summary.sort_values("score_actuel", ascending=False))
+
+        st.subheader("Analyse détaillée")
+        st.dataframe(df_reco.sort_values(["id_client", "impact_shap"]))
+
+    else:
+        st.warning("Les valeurs SHAP ne sont pas disponibles.")
 
     # ================================
     # EXPECTED LOSS
@@ -195,7 +289,7 @@ if uploaded_file:
     if run_ai:
         st.header("Step 6: Epsilon-Agent AI System")
 
-        index = st.slider("Sélectionner un client (index dans dataset filtré)", 0, len(X) - 1)
+        index = st.slider("Sélectionner un client", 0, len(X) - 1)
 
         if st.button("Lancer analyse IA"):
             row_data = X.iloc[index].to_dict()
@@ -221,7 +315,7 @@ if uploaded_file:
                 st.success(decision)
 
     # ================================
-    # LLM / RAG IFC
+    # RAG IFC
     # ================================
     st.sidebar.header("7️⃣ LLM IFC - RAG")
     if st.sidebar.button("Indexer les rapports IFC (PDF)"):
@@ -229,19 +323,19 @@ if uploaded_file:
             build_vectorstore("report/")
         st.success("Vectorstore IFC prêt")
 
-        st.header("Step 7: IFC AI Chat")
-        user_question = st.text_input("Pose une question sur les données ou le modèle")
+    st.header("Step 7: IFC AI Chat")
+    user_question = st.text_input("Pose une question sur les données ou le modèle")
 
-        if user_question:
-            context = f"""
+    if user_question:
+        context = f"""
 Dataset summary:
 {X.describe().to_string()}
 
 Model performance:
 {results_df.to_string()}
 """
-            response = chat_ifc(context, user_question)
-            st.write(response)
+        response = chat_ifc(context, user_question)
+        st.write(response)
 
 else:
     st.info("⬆️ Charge un dataset pour démarrer l'analyse.")
