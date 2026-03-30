@@ -34,8 +34,32 @@ st.set_page_config(
     layout="wide"
 )
 
+# ================================
+# CONFIG APP
+# ================================
+st.set_page_config(
+    page_title="IFC AI Credit SaaS",
+    layout="wide"
+)
+
+# AJOUT DU FOND D'IMAGE
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url("");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("Key South Lab - Team Epsilon - IFC AI Credit Scoring SaaS Platform (version α, nombre d’itérations réduit de 90 % pour des tests rapides sur Streamlit)")
-st.markdown("**Mohamed Falilou Fall - Epsilon-Agent AI System for Credit Decision (IFC and McKinsey aligned)**")
+st.markdown("**Mohamed Falilou Fall – Système d’agent IA Epsilon pour la prise de décision en matière de crédit (aligné sur les standards de l’International Finance Corporation et basé sur les six principales actions ainsi que sur des simulations pour McKinsey & Company)**")
 
 # ================================
 # SIDEBAR CONFIGURATION
@@ -43,11 +67,11 @@ st.markdown("**Mohamed Falilou Fall - Epsilon-Agent AI System for Credit Decisio
 st.sidebar.header("Configuration")
 
 model_choice = st.sidebar.selectbox(
-    "1️⃣ Choisir le modèle principal",
+    "1️. Choisir le modèle principal",
     ["Auto (Best)", "RandomForest", "XGBoost", "LightGBM", "CatBoost"]
 )
 
-run_ai = st.sidebar.checkbox("2️⃣ Activer Multi Epsilon-Agent IA", value=True)
+run_ai = st.sidebar.checkbox("2️. Activer Multi Epsilon-Agent IA", value=True)
 
 # ================================
 # UPLOAD DATA
@@ -64,7 +88,7 @@ if uploaded_file:
     # ================================
     # FILTRES CLIENT
     # ================================
-    st.sidebar.header("3️⃣ Filtrage des clients")
+    st.sidebar.header("3️. Filtrage des clients")
 
     if "pays_implantation" in df.columns:
         pays_list = ["Tous"] + sorted(df["pays_implantation"].dropna().unique().tolist())
@@ -187,12 +211,10 @@ if uploaded_file:
             score_actuel = y.iloc[i]
 
             row_filtered = row[features_analysis]
-            neg_features = row_filtered[row_filtered < 0].sort_values()
-
             impacts = []
             score_gain_potentiel = 0
 
-            for feat, val in neg_features.items():
+            for feat, val in row_filtered.items():
 
                 if feat in df_filtered.columns:
                     valeur_client = df_filtered.iloc[i][feat]
@@ -215,17 +237,18 @@ if uploaded_file:
                     "gain": gain
                 })
 
-            impacts_sorted = sorted(impacts, key=lambda x: x["impact"])
-            top3 = impacts_sorted[:3]
+            # Trier toutes les features par impact absolu et prendre top 6
+            impacts_sorted = sorted(impacts, key=lambda x: abs(x["impact"]), reverse=True)
+            top6 = impacts_sorted[:6]
 
-            recommandations_top3 = []
-            for t in top3:
+            recommandations_top6 = []
+            for t in top6:
                 if pd.notna(t["valeur"]) and pd.notna(t["moyenne"]):
                     direction = "augmenter" if t["valeur"] < t["moyenne"] else "optimiser"
                 else:
                     direction = "améliorer"
 
-                recommandations_top3.append(
+                recommandations_top6.append(
                     f"{t['feature']} ({direction}, impact={round(t['impact'],3)})"
                 )
 
@@ -244,10 +267,11 @@ if uploaded_file:
                 "score_potentiel": round(score_simule, 4),
                 "gain_potentiel": round(score_gain_potentiel, 4),
                 "segment": segment,
-                "top_3_actions": " | ".join(recommandations_top3) if recommandations_top3 else "RAS"
+                "top_6_actions": " | ".join(recommandations_top6) if recommandations_top6 else "RAS"
             })
 
-            for t in impacts:
+            # Construire df_reco pour ces top6 seulement
+            for t in top6:
                 df_reco.append({
                     "id_client": client_id,
                     "feature_critique": t["feature"],
@@ -260,7 +284,7 @@ if uploaded_file:
         df_reco = pd.DataFrame(df_reco)
         df_summary = pd.DataFrame(df_summary)
 
-        st.subheader("Résumé exécutif par client")
+        st.subheader("Résumé exécutif par client (Top 6 actions & simulation)")
         st.dataframe(df_summary.sort_values("score_actuel", ascending=False))
 
         st.subheader("Analyse détaillée")
@@ -317,7 +341,7 @@ if uploaded_file:
     # ================================
     # RAG IFC
     # ================================
-    st.sidebar.header("7️⃣ LLM IFC - RAG")
+    st.sidebar.header("7️. LLM IFC - RAG")
     if st.sidebar.button("Indexer les rapports IFC (PDF)"):
         with st.spinner("Indexation en cours..."):
             build_vectorstore("report/")
@@ -338,4 +362,4 @@ Model performance:
         st.write(response)
 
 else:
-    st.info("⬆️ Charge un dataset pour démarrer l'analyse.")
+    st.info("")
