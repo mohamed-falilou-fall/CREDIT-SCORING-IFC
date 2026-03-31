@@ -34,22 +34,18 @@ st.set_page_config(
     layout="wide"
 )
 
-# ================================
-# CONFIG APP
-# ================================
-st.set_page_config(
-    page_title="IFC AI Credit SaaS",
-    layout="wide"
-)
+st.markdown("")
 
-# AJOUT DU FOND D'IMAGE
+# ================================
+# BACKGROUND
+# ================================
 st.markdown(
     f"""
     <style>
     .stApp {{
-        background-image: url("");
-        background-size: cover;
-        background-position: center;
+        background-image: url("https://static.vecteezy.com/system/resources/thumbnails/071/848/200/small/flat-design-world-globe-grid-icon-symbol-sign-illustration-graphic-png.png");
+        background-size: 660px;  /* */
+        background-position: center center;  /*  */
         background-repeat: no-repeat;
         background-attachment: fixed;
     }}
@@ -58,91 +54,172 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("Key South Lab - Team Epsilon - IFC AI Credit Scoring SaaS Platform (version α, nombre d’itérations réduit de 90 % pour des tests rapides sur Streamlit)")
-st.markdown("**Mohamed Falilou Fall – Système d’agent IA Epsilon pour la prise de décision en matière de crédit (aligné sur les standards de l’International Finance Corporation et basé sur les six principales actions ainsi que sur des simulations pour McKinsey & Company)**")
+st.markdown("")
+
+# ================================
+# HEADER
+# ================================
+st.title("WORLD BANK GROUP AI Credit Scoring SaaS Platform (version α, nombre d’itérations réduit de 90 % pour des tests rapides sur Streamlit)")
+
+st.markdown("""
+### Plateforme d’aide à la décision crédit basée sur l’IA
+
+Cette application de Mohamed Falilou Fall permet d’analyser des portefeuilles clients, d’évaluer le risque de crédit, 
+et de générer des recommandations stratégiques automatisées alignées sur les standards de la Banque Mondiale (IFC, World Bank, MIGA).
+
+**Fonctionnalités principales :**
+- Analyse de risque multi-modèles
+- Explicabilité avancée SHAP(Shapley Additive Explanations), méthode qui permet de comprendre précisément pourquoi un modèle donne un score donné
+- Simulation d’amélioration du score crédit
+- Système multi-agents IA (Epsilon)
+- Chat intelligent basé sur documents IFC (RAG)
+
+---
+""")
+
+st.markdown("**Objectif métier :** reproduire une approche de type IFC / Banque mondiale / McKinsey & Company combinant scoring quantitatif, explicabilité et recommandations stratégiques automatisées.")
 
 # ================================
 # SIDEBAR CONFIGURATION
 # ================================
-st.sidebar.header("Configuration")
+st.sidebar.header("Configuration générale")
+
+st.sidebar.markdown("""
+Personnalisez ici le comportement du moteur d’analyse :
+
+- Choix du modèle IA
+- Activation du système multi-agents
+""")
+
+st.sidebar.markdown("**Paramétrage utilisateur :** cette section permet d’ajuster dynamiquement le moteur de scoring et d’activer l’intelligence multi-agents.")
 
 model_choice = st.sidebar.selectbox(
-    "1️. Choisir le modèle principal",
+    "1️. Choisir le modèle principal (moteur de scoring)",
     ["Auto (Best)", "RandomForest", "XGBoost", "LightGBM", "CatBoost"]
 )
 
-run_ai = st.sidebar.checkbox("2️. Activer Multi Epsilon-Agent IA", value=True)
+run_ai = st.sidebar.checkbox(
+    "2️. Activer le système Multi Epsilon-Agent IA",
+    value=True,
+    help="Active l’analyse automatique par agents spécialisés (risque, finance, stratégie, décision)"
+)
 
 # ================================
 # UPLOAD DATA
 # ================================
-st.header("Step 1: Charger le dataset")
-uploaded_file = st.file_uploader("Charger un fichier CSV", type="csv")
+st.header("Step 1: Chargement des données")
+
+st.markdown("""
+Chargez un fichier CSV contenant les informations clients.
+
+Le dataset doit idéalement inclure :
+- Variables financières
+- Informations sectorielles
+- Identifiant client
+""")
+
+st.markdown("**Entrée des données :** cette étape constitue la base du pipeline. La qualité des analyses dépend directement de la qualité du dataset importé.")
+
+uploaded_file = st.file_uploader("Importer votre dataset CSV", type="csv")
 
 if uploaded_file:
 
     df = pd.read_csv(uploaded_file)
-    st.subheader("Aperçu des données")
+
+    st.subheader("Aperçu du dataset")
+    st.markdown("Visualisation rapide des premières lignes du fichier importé.")
     st.dataframe(df.head())
+
+    st.markdown("**Exploration initiale :** permet de vérifier rapidement la structure, les variables disponibles et détecter d’éventuelles anomalies.")
 
     # ================================
     # FILTRES CLIENT
     # ================================
     st.sidebar.header("3️. Filtrage des clients")
 
+    st.sidebar.markdown("""
+Affinez votre analyse en sélectionnant un sous-ensemble de clients :
+- Par pays
+- Par secteur
+- Par identifiant spécifique
+""")
+
+    st.sidebar.markdown("**Segmentation analytique :** permet de cibler des sous-portefeuilles pour une analyse plus précise (ex : secteur, pays, client spécifique).")
+
     if "pays_implantation" in df.columns:
         pays_list = ["Tous"] + sorted(df["pays_implantation"].dropna().unique().tolist())
         selected_pays = st.sidebar.selectbox("Pays d’implantation", pays_list)
     else:
         selected_pays = "Tous"
-        st.sidebar.warning("Colonne 'pays_implantation' absente dans le dataset")
+        st.sidebar.warning("Colonne 'pays_implantation' absente")
 
     if "secteur_activite" in df.columns:
         secteur_list = ["Tous"] + sorted(df["secteur_activite"].dropna().unique().tolist())
         selected_secteur = st.sidebar.selectbox("Secteur d'activité", secteur_list)
     else:
         selected_secteur = "Tous"
-        st.sidebar.warning("Colonne 'secteur_activite' absente dans le dataset")
+        st.sidebar.warning("Colonne 'secteur_activite' absente")
 
-    id_input = st.sidebar.text_input("Rechercher par ID client")
+    id_input = st.sidebar.text_input("Rechercher un client par ID")
 
     df_filtered = df.copy()
+
     if selected_pays != "Tous" and "pays_implantation" in df.columns:
         df_filtered = df_filtered[df_filtered["pays_implantation"] == selected_pays]
+
     if selected_secteur != "Tous" and "secteur_activite" in df.columns:
         df_filtered = df_filtered[df_filtered["secteur_activite"] == selected_secteur]
+
     if id_input and "id_client" in df.columns:
         df_filtered = df_filtered[df_filtered["id_client"].astype(str) == id_input]
 
     st.subheader("Données filtrées")
     st.dataframe(df_filtered)
 
+    st.markdown("**Dataset final utilisé :** correspond au périmètre exact sur lequel seront effectuées toutes les analyses suivantes.")
+
     if df_filtered.empty:
-        st.warning("Aucun client ne correspond aux filtres sélectionnés.")
+        st.warning("Aucun client ne correspond aux critères sélectionnés.")
         st.stop()
 
     # ================================
     # PREPROCESSING
     # ================================
-    st.header("Step 2: Préprocessing")
+    st.header("Step 2: Préparation des données")
+
+    st.markdown("""
+Transformation automatique des données :
+- Nettoyage
+- Encodage
+- Sélection des variables
+""")
+
+    st.markdown("**Data engineering :** transformation du dataset brut en matrice exploitable par les modèles (feature engineering simplifié).")
+
     X, y = preprocess(df_filtered)
 
     if X is None or len(X) == 0:
         st.error("Dataset invalide après preprocessing")
         st.stop()
 
-    st.success(f" Dataset prêt : {X.shape[0]} lignes, {X.shape[1]} variables")
+    st.success(f"Dataset prêt : {X.shape[0]} observations, {X.shape[1]} variables")
 
-    # ================================
-    # TRAIN STRATEGY AGENT
-    # ================================
     train_strategy_model(X)
-    st.write(" Features utilisées :", list(X.columns))
+
+    st.write("Variables utilisées :", list(X.columns))
 
     # ================================
     # MODELING
     # ================================
-    st.header("Step 3: Modélisation")
+    st.header("Step 3: Modélisation & Benchmark")
+
+    st.markdown("""
+Comparaison automatique de plusieurs modèles de Machine Learning 
+afin de sélectionner le plus performant.
+""")
+
+    st.markdown("**Benchmark IA :** évaluation comparative des modèles pour sélectionner celui qui minimise l’erreur de prédiction (MSE : Erreur Quadradique Moyenne).")
+
     models = {
         "RandomForest": RandomForestRegressor(n_estimators=50, random_state=42),
         "XGBoost": xgb.XGBRegressor(n_estimators=50, random_state=42),
@@ -167,21 +244,30 @@ if uploaded_file:
         results[name] = np.nanmean(scores)
 
     results_df = pd.DataFrame.from_dict(results, orient='index', columns=['MSE']).sort_values(by='MSE')
-    st.subheader("Benchmark modèles")
+
+    st.subheader("Résultats des modèles")
     st.dataframe(results_df)
 
     best_model_name = results_df.index[0] if model_choice == "Auto (Best)" else model_choice
     best_model = models[best_model_name]
-    st.success(f" Modèle sélectionné : {best_model_name}")
+
+    st.success(f"Modèle sélectionné : {best_model_name}")
 
     best_model.fit(X, y)
 
     # ================================
     # SHAP
     # ================================
-    st.header("Step 4: Explicabilité SHAP")
+    st.header("Step 4: Explicabilité du modèle (SHAP)")
+
+    st.markdown("""
+Analyse des variables influençant les décisions du modèle.
+""")
+
+    st.markdown("**Explainable AI (XAI) :** SHAP (Shapley Additive Explanations) est la méthode qui permet de comprendre précisément pourquoi un modèle donne un score donné (interprétabilité locale et globale).")
+
     try:
-        with st.spinner("Calcul SHAP en cours..."):
+        with st.spinner("Calcul des contributions SHAP..."):
             explainer = shap.Explainer(best_model, X)
             shap_values = explainer(X)
 
@@ -190,12 +276,14 @@ if uploaded_file:
         st.pyplot(fig)
 
     except Exception as e:
-        st.warning(f"SHAP non supporté pour ce modèle : {e}")
+        st.warning(f"SHAP non supporté : {e}")
 
     # ================================
     # STEP 4B: RECOMMANDATIONS
     # ================================
     st.header("Step 4b: Diagnostic avancé et recommandations stratégiques")
+
+    st.markdown("**Moteur de recommandation :** transforme les insights SHAP en actions concrètes pour améliorer le score crédit.")
 
     if 'shap_values' in locals():
 
@@ -237,7 +325,6 @@ if uploaded_file:
                     "gain": gain
                 })
 
-            # Trier toutes les features par impact absolu et prendre top 6
             impacts_sorted = sorted(impacts, key=lambda x: abs(x["impact"]), reverse=True)
             top6 = impacts_sorted[:6]
 
@@ -270,7 +357,6 @@ if uploaded_file:
                 "top_6_actions": " | ".join(recommandations_top6) if recommandations_top6 else "RAS"
             })
 
-            # Construire df_reco pour ces top6 seulement
             for t in top6:
                 df_reco.append({
                     "id_client": client_id,
@@ -297,6 +383,9 @@ if uploaded_file:
     # EXPECTED LOSS
     # ================================
     st.header("Step 5: Expected Loss")
+
+    st.markdown("**Risk management financier :** calcul de la perte attendue selon la formule IFC (PD × LGD × EAD).")
+
     if all(col in df_filtered.columns for col in ["probabilite_defaut", "perte_en_cas_defaut", "exposition_defaut"]):
         df_filtered["expected_loss"] = (
             df_filtered["probabilite_defaut"]
@@ -312,6 +401,8 @@ if uploaded_file:
     # ================================
     if run_ai:
         st.header("Step 6: Epsilon-Agent AI System")
+
+        st.markdown("**Architecture multi-agents :** simulation d’un comité de crédit intelligent (risque, finance, stratégie, décision).")
 
         index = st.slider("Sélectionner un client", 0, len(X) - 1)
 
@@ -342,12 +433,18 @@ if uploaded_file:
     # RAG IFC
     # ================================
     st.sidebar.header("7️. LLM IFC - RAG")
+
+    st.sidebar.markdown("**Intelligence documentaire :** permet d’interroger des rapports IFC via un moteur RAG (Retrieval-Augmented Generation).")
+
     if st.sidebar.button("Indexer les rapports IFC (PDF)"):
         with st.spinner("Indexation en cours..."):
             build_vectorstore("report/")
         st.success("Vectorstore IFC prêt")
 
     st.header("Step 7: IFC AI Chat")
+
+    st.markdown("**Assistant intelligent :** permet de poser des questions sur les données, les modèles ou les standards IFC.")
+
     user_question = st.text_input("Pose une question sur les données ou le modèle")
 
     if user_question:
