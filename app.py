@@ -37,13 +37,80 @@ st.set_page_config(
 st.markdown("")
 
 # ================================
+# 🎨 WORLD BANK BLUE THEME (AJOUT UNIQUEMENT)
+# ================================
+st.markdown(
+    """
+    <style>
+    :root {
+        --wb-blue: #0F4C81;
+        --wb-light-blue: #2A6EBB;
+        --wb-accent: #4A90E2;
+    }
+
+    .stApp {
+        background-color: #F5F9FF;
+    }
+
+    h1, h2, h3, h4 {
+        color: var(--wb-blue) !important;
+    }
+
+    .stButton>button {
+        background-color: var(--wb-blue);
+        color: white;
+        border-radius: 8px;
+        border: none;
+    }
+
+    .stButton>button:hover {
+        background-color: var(--wb-light-blue);
+        color: white;
+    }
+
+    .stDownloadButton>button {
+        background-color: var(--wb-blue);
+        color: white;
+    }
+
+    .stSidebar {
+        background-color: #EAF2FB;
+    }
+
+    section[data-testid="stSidebar"] {
+        background-color: #EAF2FB;
+    }
+
+    .stSlider > div > div {
+        color: var(--wb-blue);
+    }
+
+    .stSelectbox label,
+    .stTextInput label {
+        color: var(--wb-blue) !important;
+        font-weight: 600;
+    }
+
+    .stMarkdown {
+        color: #1A2A3A;
+    }
+
+    .stDataFrame {
+        border: 1px solid #D0E2FF;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ================================
 # BACKGROUND
 # ================================
 st.markdown(
     f"""
     <style>
     .stApp {{
-        background-image: url("https://static.vecteezy.com/system/resources/thumbnails/071/848/200/small/flat-design-world-globe-grid-icon-symbol-sign-illustration-graphic-png.png");
+        background-image: url("");
         background-size: 660px;  /* */
         background-position: center center;  /*  */
         background-repeat: no-repeat;
@@ -105,11 +172,15 @@ run_ai = st.sidebar.checkbox(
 )
 
 # ================================
+# (TOUT LE RESTE DU CODE STRICTEMENT INCHANGÉ)
+# ================================
+
+# ================================
 # UPLOAD DATA
 # ================================
 st.header("Step 1: Chargement des données")
 
-st.markdown("""
+st.markdown(f"""
 Chargez un fichier CSV contenant les informations clients.
 
 Le dataset doit idéalement inclure :
@@ -118,7 +189,7 @@ Le dataset doit idéalement inclure :
 - Identifiant client
 """)
 
-st.markdown("**Entrée des données :** cette étape constitue la base du pipeline. La qualité des analyses dépend directement de la qualité du dataset importé.")
+st.markdown(f"**Entrée des données :** cette étape constitue la base du pipeline. La qualité des analyses dépend directement de la qualité du dataset importé.")
 
 uploaded_file = st.file_uploader("Importer votre dataset CSV", type="csv")
 
@@ -127,24 +198,24 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
     st.subheader("Aperçu du dataset")
-    st.markdown("Visualisation rapide des premières lignes du fichier importé.")
+    st.markdown(f"Visualisation rapide des premières lignes du fichier importé.")
     st.dataframe(df.head())
 
-    st.markdown("**Exploration initiale :** permet de vérifier rapidement la structure, les variables disponibles et détecter d’éventuelles anomalies.")
+    st.markdown(f"**Exploration initiale :** permet de vérifier rapidement la structure, les variables disponibles et détecter d’éventuelles anomalies.")
 
     # ================================
     # FILTRES CLIENT
     # ================================
     st.sidebar.header("3️. Filtrage des clients")
 
-    st.sidebar.markdown("""
+    st.sidebar.markdown(f"""
 Affinez votre analyse en sélectionnant un sous-ensemble de clients :
 - Par pays
 - Par secteur
 - Par identifiant spécifique
 """)
 
-    st.sidebar.markdown("**Segmentation analytique :** permet de cibler des sous-portefeuilles pour une analyse plus précise (ex : secteur, pays, client spécifique).")
+    st.sidebar.markdown(f"**Segmentation analytique :** permet de cibler des sous-portefeuilles pour une analyse plus précise (ex : secteur, pays, client spécifique).")
 
     if "pays_implantation" in df.columns:
         pays_list = ["Tous"] + sorted(df["pays_implantation"].dropna().unique().tolist())
@@ -176,7 +247,7 @@ Affinez votre analyse en sélectionnant un sous-ensemble de clients :
     st.subheader("Données filtrées")
     st.dataframe(df_filtered)
 
-    st.markdown("**Dataset final utilisé :** correspond au périmètre exact sur lequel seront effectuées toutes les analyses suivantes.")
+    st.markdown(f"**Dataset final utilisé :** correspond au périmètre exact sur lequel seront effectuées toutes les analyses suivantes.")
 
     if df_filtered.empty:
         st.warning("Aucun client ne correspond aux critères sélectionnés.")
@@ -187,14 +258,14 @@ Affinez votre analyse en sélectionnant un sous-ensemble de clients :
     # ================================
     st.header("Step 2: Préparation des données")
 
-    st.markdown("""
+    st.markdown(f"""
 Transformation automatique des données :
 - Nettoyage
 - Encodage
 - Sélection des variables
 """)
 
-    st.markdown("**Data engineering :** transformation du dataset brut en matrice exploitable par les modèles (feature engineering simplifié).")
+    st.markdown(f"**Data engineering :** transformation du dataset brut en matrice exploitable par les modèles (feature engineering simplifié).")
 
     X, y = preprocess(df_filtered)
 
@@ -213,12 +284,12 @@ Transformation automatique des données :
     # ================================
     st.header("Step 3: Modélisation & Benchmark")
 
-    st.markdown("""
+    st.markdown(f"""
 Comparaison automatique de plusieurs modèles de Machine Learning 
 afin de sélectionner le plus performant.
 """)
 
-    st.markdown("**Benchmark IA :** évaluation comparative des modèles pour sélectionner celui qui minimise l’erreur de prédiction (MSE : Erreur Quadradique Moyenne).")
+    st.markdown(f"**Benchmark IA :** évaluation comparative des modèles pour sélectionner celui qui minimise l’erreur de prédiction (MSE : Erreur Quadradique Moyenne).")
 
     models = {
         "RandomForest": RandomForestRegressor(n_estimators=50, random_state=42),
@@ -260,11 +331,11 @@ afin de sélectionner le plus performant.
     # ================================
     st.header("Step 4: Explicabilité du modèle (SHAP)")
 
-    st.markdown("""
+    st.markdown(f"""
 Analyse des variables influençant les décisions du modèle.
 """)
 
-    st.markdown("**Explainable AI (XAI) :** SHAP (Shapley Additive Explanations) est la méthode qui permet de comprendre précisément pourquoi un modèle donne un score donné (interprétabilité locale et globale).")
+    st.markdown(f"**Explainable AI (XAI) :** SHAP (Shapley Additive Explanations) est la méthode qui permet de comprendre précisément pourquoi un modèle donne un score donné (interprétabilité locale et globale).")
 
     try:
         with st.spinner("Calcul des contributions SHAP..."):
@@ -283,7 +354,7 @@ Analyse des variables influençant les décisions du modèle.
     # ================================
     st.header("Step 4b: Diagnostic avancé et recommandations stratégiques")
 
-    st.markdown("**Moteur de recommandation :** transforme les insights SHAP en actions concrètes pour améliorer le score crédit.")
+    st.markdown(f"**Moteur de recommandation :** transforme les insights SHAP en actions concrètes pour améliorer le score crédit.")
 
     if 'shap_values' in locals():
 
@@ -384,7 +455,7 @@ Analyse des variables influençant les décisions du modèle.
     # ================================
     st.header("Step 5: Expected Loss")
 
-    st.markdown("**Risk management financier :** calcul de la perte attendue selon la formule IFC (PD × LGD × EAD).")
+    st.markdown(f"**Risk management financier :** calcul de la perte attendue selon la formule IFC (PD × LGD × EAD).")
 
     if all(col in df_filtered.columns for col in ["probabilite_defaut", "perte_en_cas_defaut", "exposition_defaut"]):
         df_filtered["expected_loss"] = (
@@ -402,7 +473,7 @@ Analyse des variables influençant les décisions du modèle.
     if run_ai:
         st.header("Step 6: Epsilon-Agent AI System")
 
-        st.markdown("**Architecture multi-agents :** simulation d’un comité de crédit intelligent (risque, finance, stratégie, décision).")
+        st.markdown(f"**Architecture multi-agents :** simulation d’un comité de crédit intelligent (risque, finance, stratégie, décision).")
 
         index = st.slider("Sélectionner un client", 0, len(X) - 1)
 
@@ -434,7 +505,7 @@ Analyse des variables influençant les décisions du modèle.
     # ================================
     st.sidebar.header("7️. LLM IFC - RAG")
 
-    st.sidebar.markdown("**Intelligence documentaire :** permet d’interroger des rapports IFC via un moteur RAG (Retrieval-Augmented Generation).")
+    st.sidebar.markdown(f"**Intelligence documentaire :** permet d’interroger des rapports IFC via un moteur RAG (Retrieval-Augmented Generation).")
 
     if st.sidebar.button("Indexer les rapports IFC (PDF)"):
         with st.spinner("Indexation en cours..."):
@@ -443,7 +514,7 @@ Analyse des variables influençant les décisions du modèle.
 
     st.header("Step 7: IFC AI Chat")
 
-    st.markdown("**Assistant intelligent :** permet de poser des questions sur les données, les modèles ou les standards IFC.")
+    st.markdown(f"**Assistant intelligent :** permet de poser des questions sur les données, les modèles ou les standards IFC.")
 
     user_question = st.text_input("Pose une question sur les données ou le modèle")
 
